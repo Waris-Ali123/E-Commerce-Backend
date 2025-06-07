@@ -5,10 +5,10 @@ class UserCreate(BaseModel):
     password: str = Field(
         ...,
         min_length=8,
-        # pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]).{8,}$",
         description="Password must be at least 8 characters long, with uppercase, lowercase, digit, and special character."
     )
     full_name: str = Field(..., description="The full name of the user")
+    role: str = Field("user", description="The role of the user, default is 'user'")
 
 
 
