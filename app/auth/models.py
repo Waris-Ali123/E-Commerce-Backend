@@ -1,5 +1,16 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Enum as sqlEnum
 from app.core.database import Base
+from enum import Enum
+
+
+
+
+class UserRole(str,Enum):
+    USER = "USER"
+    ADMIN = "ADMIN"
+
+
+
 
 class User(Base):
     __tablename__ = "users"
@@ -8,4 +19,5 @@ class User(Base):
     name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
     password = Column(String)
-    role = Column(String, default="user") 
+    role = Column(sqlEnum(UserRole), default=UserRole.USER, nullable=False) 
+

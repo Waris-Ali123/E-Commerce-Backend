@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from .models import UserRole
 
 class UserCreate(BaseModel):
     email: EmailStr = Field(..., description="The email address of the user")
@@ -8,7 +9,7 @@ class UserCreate(BaseModel):
         description="Password must be at least 8 characters long, with uppercase, lowercase, digit, and special character."
     )
     full_name: str = Field(..., description="The full name of the user")
-    role: str = Field("user", description="The role of the user, default is 'user'")
+    role: str = Field(default=UserRole.USER.value, description="The role of the user, default is 'user'")
 
 
 
