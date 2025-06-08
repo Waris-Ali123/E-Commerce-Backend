@@ -3,18 +3,19 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.auth.crud import signup as signup_service
-from app.auth.schemas import UserCreate
+from app.auth.schemas import UserCreate, UserOut
 from app.auth.permissions import admin_required
 
 router = APIRouter()
 
 
-@router.post("/signup") 
+@router.post("/signup", response_model=UserOut) 
 def signup(user: UserCreate, db : Session = Depends(get_db)):
     signup_response = signup_service(user, db)
+    print("Signup response:", signup_response)
     return signup_response
 
-@router.get("/users")
+@router.get("/users", response_model=list[UserOut])
 def show_all_users(db: Session = Depends(get_db),
                    current_user: dict = Depends(admin_required)):
     from app.auth.crud import show_all_users as  show_all_users_service

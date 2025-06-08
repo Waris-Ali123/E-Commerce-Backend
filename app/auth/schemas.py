@@ -26,3 +26,15 @@ class UserCreate(BaseModel):
             raise ValueError('Password must be at least 8 characters long, with uppercase, lowercase, digit, and special character.')
     
         return v
+    
+
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    name: str
+    role: UserRole
+
+    class Config:
+        orm_mode = True 
+        from_attributes = True #for pydantic v2 compatibility

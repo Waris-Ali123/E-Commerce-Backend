@@ -3,10 +3,15 @@ import logging
 
 from app.auth.models import User
 from app.auth.utils import hash_password,verify_password, jwt_token_creation
+from app.auth.schemas import UserOut
 
 
 #creating logger
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,  # or DEBUG for even more logs
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 
 def signup(user, db):
 
@@ -28,8 +33,7 @@ def signup(user, db):
     db.commit()
     db.refresh(user_to_store)
     logger.info(f"User created successfully with email: {user_to_store.email}")
-    return {"User" : user_to_store, 
-            "message": "User created successfully."}
+    return user_to_store
 
 
 
@@ -60,12 +64,14 @@ def signin(email: str, password: str, db):
     access_token = jwt_token_creation(token_data)
 
     logger.info(f"JWT token generated for user {email}.")
+
+    userOut = UserOut.from_orm(user)
     
     return {
         "message": "Login successful.",
         "access_token": access_token,
         "token_type": "bearer",
-        "user": user
+        "user": userOut
     }
     
 

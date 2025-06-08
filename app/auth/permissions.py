@@ -21,7 +21,21 @@ def get_current_user(token: str = Depends(tokenOrigin), db=Depends(get_db)):
     try:
         logger.info("Decoding JWT token")
         decoded_jwt = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return decoded_jwt
+        user_email = decoded_jwt.get("sub")
+        if user_email is None:
+            logger.error("JWT token does not contain user email")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Jwt token does not contain user email."
+            )
+        user = db.query(User).filter(User.email == user_email).first()
+        if user is None:
+            logger.error(f"User with email {user_email} not found")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found."
+            )
+        return user.__dict__  # Convert SQLAlchemy model to dict for easier access
     except jwt.JWTError:
         logger.error("JWT token is invalid or expired")
         raise HTTPException(
@@ -31,7 +45,7 @@ def get_current_user(token: str = Depends(tokenOrigin), db=Depends(get_db)):
     
 def admin_required(current_user: User = Depends(get_current_user)):
     if current_user["role"] != UserRole.ADMIN.value:
-        logger.warning(f"Unauthorized access attempt by user: {current_user['email']}")
+        logger.warning(f"Unauthorized access attempt by user: {current_user['sub']}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin can perform this action."

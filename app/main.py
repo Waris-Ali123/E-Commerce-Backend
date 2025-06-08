@@ -15,7 +15,7 @@ app = FastAPI()
 
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(products_router, prefix="/products", tags=["products"])
+app.include_router(products_router, tags=["products"])
 
 
 
