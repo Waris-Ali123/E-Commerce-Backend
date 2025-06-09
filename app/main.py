@@ -20,7 +20,7 @@ app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(products_router, tags=["products"])
 app.include_router(cart_router, tags=["carts"])
 
-
+ 
 
 @app.get("/")
 async def read_root():
