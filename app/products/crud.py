@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
 
-def get_all_products_for_admin(db, skip, page_size):
+def get_all_products_for_admin(db, skip, page_size,current_user):
     
-    products = db.query(Product).offset(skip).limit(page_size).all()
+    products = db.query(Product).filter(Product.admin_id==current_user["id"]).offset(skip).limit(page_size).all()
     return products
 
 
@@ -32,7 +32,6 @@ def get_product_by_id(db, product_id: int):
     product = db.query(Product).filter(Product.id == product_id).first()
 
     return product
-
 
 
 

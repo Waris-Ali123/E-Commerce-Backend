@@ -45,10 +45,22 @@ def get_current_user(token: str = Depends(tokenOrigin), db=Depends(get_db)):
     
 def admin_required(current_user: User = Depends(get_current_user)):
     if current_user["role"] != UserRole.ADMIN.value:
-        logger.warning(f"Unauthorized access attempt by user: {current_user['sub']}")
+        logger.warning(f"Unauthorized access attempt by user: {current_user['email']}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin can perform this action."
+        )
+    return current_user
+
+
+
+
+def only_user_allowed(current_user: User = Depends(get_current_user)):
+    if current_user["role"] != UserRole.USER.value:
+        logger.warning(f"Only users are allowed : {current_user['email']}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only User can perform this action."
         )
     return current_user
 
