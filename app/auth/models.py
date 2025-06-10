@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum as sqlEnum
+from sqlalchemy import Column, Integer, String, Enum as sqlEnum,DateTime,Boolean,ForeignKey
 from app.core.database import Base
 from enum import Enum
 from sqlalchemy.orm import relationship
@@ -22,4 +22,23 @@ class User(Base):
     role = Column(sqlEnum(UserRole), default=UserRole.USER, nullable=False) 
 
     products = relationship("Product", back_populates="admin")
+    carts = relationship("Cart",back_populates="user")
+    orders = relationship("Order",back_populates="user")
 
+    
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer,ForeignKey("users.id",ondelete="CASCADE"), nullable=False)
+    token = Column(String,nullable=False)
+    expiration_time = Column(DateTime,nullable=False)
+    used = Column(Boolean,nullable=False,default=False)
+
+
+    def __str__(self):
+        return f"User id : {self.user_id} || Used : {self.used} || Expriation time : {self.expiration_time}"
+
+    
+    

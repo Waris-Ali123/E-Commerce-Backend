@@ -38,3 +38,23 @@ class UserOut(BaseModel):
     class Config:
         orm_mode = True 
         from_attributes = True #for pydantic v2 compatibility
+
+
+
+
+
+
+class PasswordReset(BaseModel):
+    token : str
+    new_password: str
+
+    @field_validator('new_password')
+    def password_complexity(cls, v):
+        import re
+        if (len(v) < 8 or
+            not re.search(r'[A-Z]', v) or
+            not re.search(r'[a-z]', v) or
+            not re.search(r'\d', v) or
+            not re.search(r'[!@#$%^&*()_+\-=\[\]{};\'":\\|,.<>\/?]', v)):
+            raise ValueError('Password must be at least 8 characters long, with uppercase, lowercase, digit, and special character.')
+        return v

@@ -1,9 +1,12 @@
 import logging
 
-
-from app.auth.models import User
+from fastapi import HTTPException,status
+from app.auth.models import User,PasswordResetToken
 from app.auth.utils import hash_password,verify_password, jwt_token_creation
 from app.auth.schemas import UserOut
+from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+
 
 
 #creating logger
@@ -87,3 +90,58 @@ def delete_user(user_id: int, db):
     db.commit()
     logger.info(f"User with ID {user_id} deleted successfully.")
     return {"message": "User deleted successfully."}
+
+
+
+def forgot_password_service(email_coming,db:Session):
+    import secrets
+
+    existing_user = db.query(User).filter(User.email == email_coming).first()
+
+    if not existing_user:
+        logger.warning(f"User not found with email {email_coming}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"User not found with email {email_coming}")
+    
+
+    token_by_secret = secrets.token_urlsafe(32)
+    new_reset_token_entry = PasswordResetToken(
+        user_id = existing_user.id,
+        token = token_by_secret,
+        expiration_time = datetime.utcnow() + timedelta(minutes=5), 
+        used = False
+    )
+
+    db.add(new_reset_token_entry)
+    db.commit()
+    db.refresh(new_reset_token_entry)
+
+    return new_reset_token_entry
+
+
+
+def reset_password_service(token_coming,new_password,db):
+    
+    reset_token_entry = db.query(PasswordResetToken).filter(PasswordResetToken.token == token_coming).first()
+
+    if (not reset_token_entry) or (reset_token_entry.used) or (reset_token_entry.expiration_time < datetime.utcnow()):
+        logger.error("Invalid Token or Used earlier or time expired")
+        if (not reset_token_entry):
+            logger.warning(f"no reset token found for {token_coming}")
+        elif reset_token_entry.used:
+            logger.warning(f"reset token has already used")
+        else:
+            logger.warning(f"expired")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Invalid Token or Used earlier or time expired")
+
+    user = db.query(User).filter(User.id == reset_token_entry.user_id).first()
+
+    user.password = hash_password(new_password)
+
+    reset_token_entry.used = True
+
+    db.commit()
+
+    db.refresh(reset_token_entry)
+    print(reset_token_entry)
+
+    return {"msg" : "Password has been reset successfully"}
