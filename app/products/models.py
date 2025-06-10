@@ -19,5 +19,9 @@ class Product(Base):
 
     admin = relationship("User", back_populates="products")
 
+
+    carts = relationship("Cart",back_populates="product")
+    order_items = relationship("OrderItem",back_populates="product")
+
     def __str__(self):
         return f"<Product(name={self.name}, price={self.price}, stock={self.stock})>"

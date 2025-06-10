@@ -1,1 +1,6 @@
-__pycache__
+venv/
+ecommerce2.db
+ecommerce.db
+simple.db
+__pycache__/
+.env
