@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 
 
+
 #creating logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -94,6 +95,7 @@ def delete_user(user_id: int, db):
 
 
 def forgot_password_service(email_coming,db:Session):
+    from app.utils.email_sender import sending_email_with_token
     import secrets
 
     existing_user = db.query(User).filter(User.email == email_coming).first()
@@ -114,6 +116,16 @@ def forgot_password_service(email_coming,db:Session):
     db.add(new_reset_token_entry)
     db.commit()
     db.refresh(new_reset_token_entry)
+
+    sender = "gulamwarissheikh786@gmail.com"
+    password = "gypudxiuqrgmjuzr"
+    receiver = existing_user.email
+    receiver_name = existing_user.name
+    reset_token = new_reset_token_entry.token
+
+
+
+    sending_email_with_token(sender=sender,password=password,receiver=receiver,reset_token=reset_token,receiver_name=receiver_name)
 
     return new_reset_token_entry
 
