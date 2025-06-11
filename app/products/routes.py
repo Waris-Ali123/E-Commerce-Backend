@@ -12,7 +12,7 @@ from app.auth.permissions import get_current_user, admin_required, only_user_all
 
 router = APIRouter()
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 @router.get("/admin/products/", response_model=list[ProductOut])
 def get_products(db : Session =Depends(get_db),current_user: dict = Depends(admin_required),
@@ -40,7 +40,7 @@ def add_product(product: ProductCreate, db: Session = Depends(get_db),current_us
 def get_product(product_id: int, db: Session = Depends(get_db),current_user: dict = Depends(admin_required)):
     from app.products.crud import get_product_by_id
     logger.info(f"Admin {current_user['email']} requested product with id {product_id}")
-    product = get_product_by_id(db, product_id)
+    product = get_product_by_id(db, product_id,current_user)
     if not product:
         logger.warning(f"Product with id {product_id} not found for admin {current_user['email']}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")

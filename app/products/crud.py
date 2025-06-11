@@ -1,6 +1,16 @@
 from app.products.models import Product
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+import logging
+
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,  # or DEBUG for even more logs
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+
 
 
 def get_all_products_for_admin(db, skip, page_size,current_user):
@@ -27,10 +37,19 @@ def add_product(product, db, current_user):
 
 
 
-def get_product_by_id(db, product_id: int):
+def get_product_by_id(db, product_id: int,current_user):
     
     product = db.query(Product).filter(Product.id == product_id).first()
 
+
+    if not product:
+        logger.warning(f"Product with id : {product_id} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Product with id : {product_id} not found")
+
+
+    if product.admin_id != current_user['id']:
+        logger.warning(f"Product with id:{product_id} does not belong to {current_user['email']}")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Product with id:{product_id} does not belong to {current_user['email']}")
     return product
 
 
@@ -39,9 +58,11 @@ def delete_product(product_id: int, db, current_user):
     
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
-        return None
+        logger.warning(f"No product fount for product with id {product_id} ")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No product fount for product with id {product_id} ")
     
     if product.admin_id != current_user['id']:
+        logger.warning(f"{current_user['email']} is not the one who created product with id : {product_id}. Therefore he cannot update it")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="You are not the one who created it. Therefore You cannot update it")
     
     db.delete(product)
@@ -70,6 +91,7 @@ def get_products_based_on_search(keyword: str, db: Session,skip: int, page_size:
     
     products = db.query(Product).filter(Product.name.like(f"%{keyword}%")).all()
     if not products:
+        logger.warning(f"No product found for search keyword {keyword}")
         return {"message": "No products found with the given keyword."}
     return products
 

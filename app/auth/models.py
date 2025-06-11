@@ -32,7 +32,7 @@ class PasswordResetToken(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer,ForeignKey("users.id",ondelete="CASCADE"), nullable=False)
-    token = Column(String,nullable=False)
+    token = Column(String,nullable=False,unique=True)
     expiration_time = Column(DateTime,nullable=False)
     used = Column(Boolean,nullable=False,default=False)
 

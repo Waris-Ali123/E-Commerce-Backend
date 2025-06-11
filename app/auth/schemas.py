@@ -9,8 +9,14 @@ class UserCreate(BaseModel):
         description="Password must be at least 8 characters long, with uppercase, lowercase, digit, and special character."
     )
     full_name: str = Field(..., description="The full name of the user")
-    role: str = Field(default=UserRole.USER.value, description="The role of the user, default is 'user'")
+    role: str = Field(default=UserRole.USER.value,pattern="^(USER|ADMIN)$", description="The role of the user, default is 'user'")
 
+
+    @field_validator('full_name')
+    def name_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError('Full name cannot be empty or whitespace.')
+        return v
 
 
 
