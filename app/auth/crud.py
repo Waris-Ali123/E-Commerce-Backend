@@ -95,6 +95,7 @@ def delete_user(user_id: int, db):
 
 
 def forgot_password_service(email_coming,db:Session):
+    from app.core.config import settings
     from app.utils.email_sender import sending_email_with_token
     import secrets
 
@@ -117,8 +118,8 @@ def forgot_password_service(email_coming,db:Session):
     db.commit()
     db.refresh(new_reset_token_entry)
 
-    sender = "gulamwarissheikh786@gmail.com"
-    password = "gypudxiuqrgmjuzr"
+    sender = settings.EMAIL_USER
+    password = settings.EMAIL_PASS
     receiver = existing_user.email
     receiver_name = existing_user.name
     reset_token = new_reset_token_entry.token

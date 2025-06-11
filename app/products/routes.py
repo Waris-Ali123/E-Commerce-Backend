@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from fastapi import Query
+from fastapi import Query,Path,Body
 from app.products.schemas import ProductOut
 import logging
 
@@ -12,11 +12,11 @@ from app.auth.permissions import get_current_user, admin_required, only_user_all
 
 router = APIRouter()
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 @router.get("/admin/products/", response_model=list[ProductOut])
 def get_products(db : Session =Depends(get_db),current_user: dict = Depends(admin_required),
-                page : int = Query(default=1,gt=0), page_size : int = Query(default=10, ge=1, le=100)):
+                page : int = Query(default=1,gt=0), page_size : int = Query(default=10, ge=1)):
     from app.products.crud import get_all_products_for_admin
     logger.info(f"Admin {current_user['email'] } is trying to get all products (page={page}, page_size={page_size})")
     skip = (page - 1) * page_size
@@ -37,20 +37,20 @@ def add_product(product: ProductCreate, db: Session = Depends(get_db),current_us
 
 
 @router.get("/admin/products/{product_id}",response_model=ProductOut)
-def get_product(product_id: int, db: Session = Depends(get_db),current_user: dict = Depends(admin_required)):
-    from app.products.crud import get_product_by_id
+def get_product(product_id: int = Path(...,ge=1), db: Session = Depends(get_db),current_user: dict = Depends(admin_required)):
+    from app.products.crud import get_product_by_id_for_admin
     logger.info(f"Admin {current_user['email']} requested product with id {product_id}")
-    product = get_product_by_id(db, product_id)
+    product = get_product_by_id_for_admin(db, product_id,current_user)
     if not product:
         logger.warning(f"Product with id {product_id} not found for admin {current_user['email']}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
     return product
 
 @router.put("/admin/products/{product_id}",response_model=ProductOut, status_code=status.HTTP_200_OK)
-def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db), current_user: dict = Depends(admin_required)):
+def update_product(product_id: int = Path(...,ge=1), product: ProductCreate = Body(...), db: Session = Depends(get_db), current_user: dict = Depends(admin_required)):
     from app.products.crud import get_product_by_id, update_product as update_product_service
     logger.info(f"Admin {current_user['email']} is updating product with id {product_id}")
-    existing_product = get_product_by_id(db, product_id)
+    existing_product = get_product_by_id(db, product_id,current_user)
     if not existing_product:
         logger.warning(f"Product with id {product_id} not found for update by admin {current_user['email']}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
@@ -66,7 +66,7 @@ def update_product(product_id: int, product: ProductCreate, db: Session = Depend
 
 
 @router.delete("/admin/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(product_id: int, db: Session = Depends(get_db), current_user: dict = Depends(admin_required)):
+def delete_product(product_id: int = Path(...,ge=1), db: Session = Depends(get_db), current_user: dict = Depends(admin_required)):
     from app.products.crud import delete_product as delete_product_service
     logger.info(f"Admin {current_user['email']} is deleting product with id {product_id}")
 
@@ -110,7 +110,7 @@ def get_all_products_by_user(page: int = Query(default=1, gt=0), page_size: int 
 
 
 @router.get("/products/{product_id}",response_model=ProductOut)
-def get_product_by_id(product_id: int, db: Session = Depends(get_db),current_user: dict = Depends(get_current_user)):
+def get_product_by_id(product_id: int = Path(...,ge=1), db: Session = Depends(get_db),current_user: dict = Depends(get_current_user)):
     from app.products.crud import get_product_by_id
     logger.info(f"User {current_user['email']} requested product with id {product_id}")
     product = get_product_by_id(db, product_id)
