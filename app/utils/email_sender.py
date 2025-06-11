@@ -1,6 +1,8 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from fastapi import HTTPException,status
+from app.core.config import settings
 
 
 def sending_email_with_token(sender,password,receiver,reset_token,receiver_name):
@@ -34,7 +36,7 @@ Support Team
 
 
     try:
-        with smtplib.SMTP("smtp.gmail.com",587) as my_server:
+        with smtplib.SMTP(settings.EMAIL_HOST,settings.EMAIL_PORT) as my_server:
             my_server.starttls()
             my_server.login(sender,password)
             my_server.sendmail(sender,receiver,msg.as_string())
@@ -42,4 +44,5 @@ Support Team
 
     except Exception as e:
         print("Error in sending mail : ",e)
-        raise
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send reset email. Please try again later.")

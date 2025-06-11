@@ -14,9 +14,7 @@ class ProductCreate(BaseModel):
 
 
 
-    @field_validator('name','category','image_url')
-    # @field_validator('category')
-    # @field_validator('image_url')
+    @field_validator('name','category','image_url','description')
     def name_not_empty(cls, v):
         if not v.strip():
             raise ValueError(f'{v} cannot be empty or whitespace.')

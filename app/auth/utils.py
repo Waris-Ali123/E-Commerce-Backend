@@ -2,9 +2,10 @@ from passlib.context import CryptContext
 
 from jose import jwt
 from datetime import datetime, timedelta
+from app.core.config import settings
 
 
-SECRET_KEY = "NAJAN@783@#"
+SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 
 

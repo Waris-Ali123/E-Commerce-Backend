@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Query, Depends, status
+from fastapi import APIRouter,Query, Depends, status, Path
 from app.auth.permissions import only_user_allowed
 from app.core.database import get_db
 from sqlalchemy.orm import Session
@@ -8,7 +8,7 @@ from app.cart import schemas
 router = APIRouter()
 
 @router.post("/cart",response_model=schemas.CartOut)
-def add_product_to_cart(product_id : int = Query(...),quantity : int = Query(default=1,gt=0), current_user : dict = Depends(only_user_allowed),db : Session = Depends(get_db)):
+def add_product_to_cart(product_id : int = Query(...,ge=1),quantity : int = Query(default=1,gt=0), current_user : dict = Depends(only_user_allowed),db : Session = Depends(get_db)):
     product_added = crud.adding_product_to_cart_service(product_id,quantity,current_user,db)
 
     return product_added
@@ -23,7 +23,7 @@ def get_cart_products(db : Session = Depends(get_db),current_user : dict = Depen
 
 
 @router.delete("/cart/{product_id}",status_code=status.HTTP_204_NO_CONTENT)
-def delete_cart_item(product_id : int , db : Session = Depends(get_db),current_user : dict = Depends(only_user_allowed)):
+def delete_cart_item(product_id : int = Path(...,ge=1,description="It belongs to the product id.The id should be greater than 1.I") , db : Session = Depends(get_db),current_user : dict = Depends(only_user_allowed)):
     msg = crud.deleting_cart_item(product_id,db,current_user)
 
     return msg
@@ -31,6 +31,6 @@ def delete_cart_item(product_id : int , db : Session = Depends(get_db),current_u
 
 
 @router.put("/cart/{product_id}",status_code=status.HTTP_200_OK,response_model=schemas.CartOut)
-def update_cart_item(product_id:int, quantity : int = Query(...,gt=0) ,db : Session = Depends(get_db),current_user : dict = Depends(only_user_allowed) ):
+def update_cart_item(product_id: int = Path(...,ge=1), quantity : int = Query(...,ge=1) ,db : Session = Depends(get_db),current_user : dict = Depends(only_user_allowed) ):
     updated_cart_item = crud.updating_cart_item(product_id,quantity,db, current_user)
     return updated_cart_item

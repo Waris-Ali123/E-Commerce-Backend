@@ -2,5 +2,24 @@ venv/
 ecommerce2.db
 ecommerce.db
 simple.db
-__pycache__/
+__pycache__
 .env
+
+
+__pycache__/
+*.py[cod]
+*.pyc
+
+
+
+*.db
+*.sqlite3
+
+
+# Environment files (if using)
+.env
+*.env
+
+
+.vscode/
+.idea/

@@ -64,3 +64,9 @@ class PasswordReset(BaseModel):
             not re.search(r'[!@#$%^&*()_+\-=\[\]{};\'":\\|,.<>\/?]', v)):
             raise ValueError('Password must be at least 8 characters long, with uppercase, lowercase, digit, and special character.')
         return v
+    
+    @field_validator('token')
+    def token_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError('token cannot be empty or whitespace.')
+        return v

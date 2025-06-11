@@ -9,6 +9,9 @@ from app.products.models import Product
 from app.cart.models import Cart
 from app.orders.models import Order,OrderItem
 from app.core.database import engine, Base
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from app.exceptions.handlers import http_exception_handler, validation_exception_handler, general_exception_handler
+from fastapi.exceptions import RequestValidationError
 
 Base.metadata.create_all(bind=engine)
 
@@ -25,6 +28,12 @@ app.include_router(cart_router, tags=["carts"])
 app.include_router(order_router,tags=["orders"])
 app.include_router(checkout_router,tags=["checkingOut"])
 
+
+
+
+app.add_exception_handler(StarletteHTTPException,handler=http_exception_handler)
+app.add_exception_handler(RequestValidationError,handler=validation_exception_handler)
+app.add_exception_handler(Exception,handler=general_exception_handler)
  
 
 @app.get("/")
