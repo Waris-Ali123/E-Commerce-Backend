@@ -14,7 +14,7 @@ router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-@router.get("/admin/products/", response_model=list[ProductOut])
+@router.get("/admin/products/", response_model=list[ProductOut],status_code=status.HTTP_200_OK)
 def get_products(db : Session =Depends(get_db),current_user: dict = Depends(admin_required),
                 page : int = Query(default=1,gt=0), page_size : int = Query(default=10, ge=1)):
     from app.products.crud import get_all_products_for_admin
@@ -26,7 +26,7 @@ def get_products(db : Session =Depends(get_db),current_user: dict = Depends(admi
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products found")
     return products
 
-
+ 
 @router.post("/admin/products/", status_code=status.HTTP_201_CREATED, response_model=ProductOut)
 def add_product(product: ProductCreate, db: Session = Depends(get_db),current_user: dict = Depends(admin_required)):
     from app.products.crud import add_product as add_product_service
@@ -36,7 +36,7 @@ def add_product(product: ProductCreate, db: Session = Depends(get_db),current_us
     return new_product
 
 
-@router.get("/admin/products/{product_id}",response_model=ProductOut)
+@router.get("/admin/products/{product_id}",response_model=ProductOut,status_code=status.HTTP_200_OK)
 def get_product(product_id: int = Path(...,ge=1), db: Session = Depends(get_db),current_user: dict = Depends(admin_required)):
     from app.products.crud import get_product_by_id_for_admin
     logger.info(f"Admin {current_user['email']} requested product with id {product_id}")
@@ -80,7 +80,7 @@ def delete_product(product_id: int = Path(...,ge=1), db: Session = Depends(get_d
 
 
 
-@router.get("/products/search",response_model=list[ProductOut])
+@router.get("/products/search",response_model=list[ProductOut], status_code=status.HTTP_200_OK)
 def get_product_by_keyword(keyword: str = Query(..., min_length=1),page : int = Query(default=1,gt=0), page_size : int = Query(default=10, ge=1, le=100),
                            db : Session = Depends(get_db),current_user: dict = Depends(get_current_user)):
     from app.products.crud import get_products_based_on_search
@@ -90,11 +90,12 @@ def get_product_by_keyword(keyword: str = Query(..., min_length=1),page : int = 
     products = get_products_based_on_search(keyword, db, skip=0, page_size=100)
     if not products:
         logger.info(f"No products found for keyword '{keyword}' by user {current_user['email']}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No products found for {keyword}")
 
     return products
 
 
-@router.get("/products/",response_model=list[ProductOut])
+@router.get("/products/",response_model=list[ProductOut], status_code=status.HTTP_200_OK)
 def get_all_products_by_user(page: int = Query(default=1, gt=0), page_size: int = Query(default=10, ge=1, le=100),
                              category : str = Query(default = ""),min_price: float = Query(default=0.0), max_price: float = Query(default=float('inf')),
                              sort_by : str = Query(default="name", regex="^(name|price|category)$"),
@@ -109,7 +110,7 @@ def get_all_products_by_user(page: int = Query(default=1, gt=0), page_size: int 
     return products
 
 
-@router.get("/products/{product_id}",response_model=ProductOut)
+@router.get("/products/{product_id}",response_model=ProductOut, status_code=status.HTTP_200_OK)
 def get_product_by_id(product_id: int = Path(...,ge=1), db: Session = Depends(get_db),current_user: dict = Depends(get_current_user)):
     from app.products.crud import get_product_by_id
     logger.info(f"User {current_user['email']} requested product with id {product_id}")

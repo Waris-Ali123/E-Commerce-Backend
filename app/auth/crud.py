@@ -23,14 +23,15 @@ def signup(user, db):
 
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
-        logger.warning(f"User with email {user.email} already exists.")
-        return {"message": "User already exists with this email."}
+        # logger.warning(f"User with email {user.email} already exists.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail=f"User with email {user.email} already exists.")
     user_to_store = User(
         name=user.full_name,
         email=user.email,
         password=hash_password(user.password),
         role=user.role
     )
+
     logger.info(f"Creating user with email : {user_to_store.email}")
     # print("User to store:", user_to_store)
     db.add(user_to_store)
@@ -44,8 +45,9 @@ def signup(user, db):
 def show_all_users(db):
     users = db.query(User).all()
     if not users:
-        logger.info("No users found in the database.")
-        return {"message": "No users found."}
+        # logger.info("No users found in the database.")
+        # return {"message": "No users found."}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="No user found in the database")
     return users
 
 
@@ -54,12 +56,10 @@ def signin(email: str, password: str, db):
     logger.info(f"Attempting to sign in user with email: {email}")
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        logger.warning(f"User with email {email} not found.")
-        return {"message": "User not found."}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No User found for email : {email}")
     
     if not verify_password(password, user.password):
-        logger.warning(f"Incorrect password for user with email: {email}")
-        return {"message": "Incorrect password."}
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Invalid Password")
     
     # Generate JWT token
     logger.info(f"User {email} has put correct password, generating JWT token.")
@@ -84,8 +84,8 @@ def delete_user(user_id: int, db):
     logger.info(f"Attempting to delete user with ID: {user_id}")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        logger.warning(f"User with ID {user_id} not found.")
-        return {"message": "User not found."}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No User found for email : {email}")
+
     
     db.delete(user)
     db.commit()
@@ -102,10 +102,11 @@ def forgot_password_service(email_coming,db:Session):
     existing_user = db.query(User).filter(User.email == email_coming).first()
 
     if not existing_user:
-        logger.warning(f"User not found with email {email_coming}")
+        # logger.warning(f"User not found with email {email_coming}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"User not found with email {email_coming}")
     
 
+    logger.info(f"Generating token for {email_coming}")
     token_by_secret = secrets.token_urlsafe(32)
     new_reset_token_entry = PasswordResetToken(
         user_id = existing_user.id,
@@ -123,8 +124,6 @@ def forgot_password_service(email_coming,db:Session):
     receiver = existing_user.email
     receiver_name = existing_user.name
     reset_token = new_reset_token_entry.token
-
-
 
     sending_email_with_token(sender=sender,password=password,receiver=receiver,reset_token=reset_token,receiver_name=receiver_name)
 

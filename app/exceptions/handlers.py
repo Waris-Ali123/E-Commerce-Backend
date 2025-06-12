@@ -3,9 +3,12 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
 
+import logging
 
+logger = logging.getLogger(__name__)
 def final_error_response(msg : str ,status_code : int):
-    return JSONResponse(
+
+    json_error = JSONResponse(
         status_code= status_code,
         content= {
             "error" : True,
@@ -13,6 +16,8 @@ def final_error_response(msg : str ,status_code : int):
             "code" : status_code
         } 
     )
+    logger.error(f"[status_code : { status_code}] msg : {msg}")
+    return json_error
 
 
 

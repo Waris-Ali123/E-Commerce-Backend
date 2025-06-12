@@ -17,6 +17,8 @@ logging.basicConfig(
 
 def checkout_service(db : Session, current_user : dict):
 
+    logger.info(f"User {current_user['email']} is checking out ")
+
     current_user_id = current_user['id']
     user_carts = db.query(Cart).filter(Cart.user_id==current_user_id).all()
 
@@ -32,11 +34,12 @@ def checkout_service(db : Session, current_user : dict):
         product = db.query(Product).filter(Product.id == cart.product_id).first()
 
         if not product :
+            logger.error(f"Product with id {cart.product_id} has not been found in the cart with id : {cart.id} for the user {current_user['email']}")
             continue
 
 
         if product.stock < cart.quantity:
-            logger.warn(f"User {current_user['email']} has put more quantity of product with id {product.id} than its stock : {product.stock}")
+            # logger.warn(f"User {current_user['email']} has put more quantity of product with id {product.id} than its stock : {product.stock}")
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,detail=f"Product with id {product.id} has only {product.stock} available. Change the quantity {cart.quantity}")
         
         product.stock -= cart.quantity
@@ -60,6 +63,9 @@ def checkout_service(db : Session, current_user : dict):
 
     db.flush()
 
+
+    logger.info(f"New Order has been created now the order items are being added")
+
     for o_item in order_items_local:
         o_item.order_id = new_order.id
         db.add(o_item)
@@ -71,9 +77,6 @@ def checkout_service(db : Session, current_user : dict):
     db.refresh(new_order)
 
 
-
-    # new_order.order_items = order_items_local
-
-    print(new_order)
-     
+    logger.info(f"New Order has been placed Successfully with order id : {new_order.id}")
+ 
     return new_order

@@ -7,7 +7,7 @@ from app.cart import schemas
 
 router = APIRouter()
 
-@router.post("/cart",response_model=schemas.CartOut)
+@router.post("/cart",response_model=schemas.CartOut,status_code=status.HTTP_201_CREATED)
 def add_product_to_cart(product_id : int = Query(...,ge=1),quantity : int = Query(default=1,gt=0), current_user : dict = Depends(only_user_allowed),db : Session = Depends(get_db)):
     product_added = crud.adding_product_to_cart_service(product_id,quantity,current_user,db)
 
@@ -15,7 +15,7 @@ def add_product_to_cart(product_id : int = Query(...,ge=1),quantity : int = Quer
 
 
 
-@router.get("/cart",response_model=list[schemas.CartOut])
+@router.get("/cart",response_model=list[schemas.CartOut],status_code=status.HTTP_200_OK)
 def get_cart_products(db : Session = Depends(get_db),current_user : dict = Depends(only_user_allowed)):
     cart_added_products = crud.show_cart_items(db,current_user)
     return cart_added_products
