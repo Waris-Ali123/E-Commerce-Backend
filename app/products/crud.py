@@ -37,19 +37,6 @@ def add_product(product, db, current_user):
 
 
 
-def get_product_by_id(db, product_id: int):
-    
-    product = db.query(Product).filter(Product.id == product_id).first()
-
-
-    if not product:
-        logger.warning(f"Product with id : {product_id} not found")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Product with id : {product_id} not found")
-
-    return product
-
-
-
 def get_product_by_id_for_admin(db, product_id: int,current_user):
     
     product = db.query(Product).filter(Product.id == product_id).first()
@@ -109,6 +96,19 @@ def get_products_based_on_search(keyword: str, db: Session,skip: int, page_size:
         logger.warning(f"No product found for search keyword {keyword}")
         return {"message": "No products found with the given keyword."}
     return products
+
+
+
+def get_product_by_id(db, product_id: int):
+    
+    product = db.query(Product).filter(Product.id == product_id).first()
+
+
+    if not product:
+        logger.warning(f"Product with id : {product_id} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Product with id : {product_id} not found")
+
+    return product
 
 
 

@@ -18,10 +18,20 @@ class Product(Base):
 
 
     admin = relationship("User", back_populates="products")
-
+    
 
     carts = relationship("Cart",back_populates="product")
     order_items = relationship("OrderItem",back_populates="product")
 
     def __str__(self):
         return f"<Product(name={self.name}, price={self.price}, stock={self.stock})>"
+
+
+
+
+
+#this all imported bcz it is needed by the seeders of our project
+from app.auth.models import User 
+from app.cart.models import Cart
+from app.orders.models import Order
+from app.orders.models import OrderItem

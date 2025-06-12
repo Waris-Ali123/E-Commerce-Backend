@@ -41,4 +41,4 @@ class PasswordResetToken(Base):
         return f"User id : {self.user_id} || Used : {self.used} || Expriation time : {self.expiration_time}"
 
     
-    
+    from app.products.models import Product

@@ -18,6 +18,18 @@ logging.basicConfig(
 )
 
 def signup(user, db):
+    """This is for creating a user and storing in db
+
+    Args:
+        user (UserCreate): It is pydantic schema to validate correct User details
+        db (Session): It is Session's object used to talk with database
+
+    Raises:
+        HTTPException: [409] If User with email x is already present in db
+
+    Returns:
+        USER : The user entity that will be in the db 
+    """
 
     # print("Session Local:", db)
 
@@ -43,6 +55,17 @@ def signup(user, db):
 
 
 def show_all_users(db):
+    """It is used by admin to see all the users . For now it is only for our development ease.
+
+    Args:
+        db (Session): It is Session's object used to talk with database
+
+    Raises:
+        HTTPException: 404
+
+    Returns:
+        List[User]: List of user entity
+    """
     users = db.query(User).all()
     if not users:
         # logger.info("No users found in the database.")
@@ -53,6 +76,20 @@ def show_all_users(db):
 
 
 def signin(email: str, password: str, db):
+    """This is used to validate the entries in db and allow user to enter our website
+
+    Args:
+        email (str): This the email of user
+        password (str): This is password of user
+        db (Session): It is Session's object used to talk with database
+
+    Raises:
+        HTTPException: 404
+        HTTPException: 403
+
+    Returns:
+        dict: A dict containing successfull msg
+    """
     logger.info(f"Attempting to sign in user with email: {email}")
     user = db.query(User).filter(User.email == email).first()
     if not user:
@@ -80,7 +117,20 @@ def signin(email: str, password: str, db):
     
 
 
-def delete_user(user_id: int, db):
+def delete_user(user_id: int, db : Session)-> dict:
+    """This deletes the user in db
+
+    Args:
+        user_id (int): User id of user
+        db (Session): It is Session's object used to talk with database
+
+    Raises:
+        HTTPException: 404- User not found
+
+    Returns:
+        dict: successfull msg
+    """ 
+
     logger.info(f"Attempting to delete user with ID: {user_id}")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -94,7 +144,19 @@ def delete_user(user_id: int, db):
 
 
 
-def forgot_password_service(email_coming,db:Session):
+def forgot_password_service(email_coming : str,db:Session)->PasswordResetToken:
+    """This is invoken when someone call forgot password api to generate token and mail him 
+
+    Args:
+        email_coming (str): email of user
+        db (Session): It is Session's object used to talk with database
+
+    Raises:
+        HTTPException: 404- User not found
+
+    Returns:
+        PasswordResetToken: An entity consisting of user_id,token,expiration_time etc
+    """ 
     from app.core.config import settings
     from app.utils.email_sender import sending_email_with_token
     import secrets
@@ -131,7 +193,20 @@ def forgot_password_service(email_coming,db:Session):
 
 
 
-def reset_password_service(token_coming,new_password,db):
+def reset_password_service(token_coming:str,new_password:str ,db:Session):
+    """It resets password if the token is validated
+
+    Args:
+        token_coming (str): secret token generated for user
+        new_password (str): _description_
+        db (Session): _description_
+
+    Raises:
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
+    """
     
     reset_token_entry = db.query(PasswordResetToken).filter(PasswordResetToken.token == token_coming).first()
 
