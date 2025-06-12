@@ -3,9 +3,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from fastapi import HTTPException,status
 from app.core.config import settings
+import logging
 
+logger = logging.getLogger()
 
-def sending_email_with_token(sender,password,receiver,reset_token,receiver_name):
+async def sending_email_with_token(sender,password,receiver,reset_token,receiver_name):
 
     subject_line = "Password Reset Token for E-commerce login"
     
@@ -37,12 +39,13 @@ Support Team
 
     try:
         with smtplib.SMTP(settings.EMAIL_HOST,settings.EMAIL_PORT) as my_server:
+            logger.info("Sending the email")
             my_server.starttls()
             my_server.login(sender,password)
             my_server.sendmail(sender,receiver,msg.as_string())
-            print("email sent successfully")
+            logger.info("email sent successfully")
 
     except Exception as e:
-        print("Error in sending mail : ",e)
+        # print("Error in sending mail : ",e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send reset email. Please try again later.")
