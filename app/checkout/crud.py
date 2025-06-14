@@ -15,7 +15,20 @@ logging.basicConfig(
 )
 
 
-def checkout_service(db : Session, current_user : dict):
+def checkout_service(db : Session, current_user : dict)->Order:
+    """Checking our for a user, removing all items from cart and generating new order
+
+    Args:
+        db (Session): An object that handles db operations
+        current_user (dict): containing all logged in user details
+
+    Raises:
+        HTTPException: 404-Cart contains Nothing for current user   
+        HTTPException: 400-Ordered quantity is more than the stock of that product
+
+    Returns:
+        Order: A new order containing all details of order items
+    """
 
     logger.info(f"User {current_user['email']} is checking out ")
 
@@ -23,6 +36,7 @@ def checkout_service(db : Session, current_user : dict):
     user_carts = db.query(Cart).filter(Cart.user_id==current_user_id).all()
 
     if not user_carts:
+
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="User cart is empty")
         
 
@@ -40,7 +54,7 @@ def checkout_service(db : Session, current_user : dict):
 
         if product.stock < cart.quantity:
             # logger.warn(f"User {current_user['email']} has put more quantity of product with id {product.id} than its stock : {product.stock}")
-            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,detail=f"Product with id {product.id} has only {product.stock} available. Change the quantity {cart.quantity}")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Product with id {product.id} has only {product.stock} available. Change the quantity {cart.quantity}")
         
         product.stock -= cart.quantity
 

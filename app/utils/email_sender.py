@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger()
 
-async def sending_email_with_token(sender,password,receiver,reset_token,receiver_name):
+def sending_email_with_token(sender,password,receiver,reset_token,receiver_name):
 
     subject_line = "Password Reset Token for E-commerce login"
     

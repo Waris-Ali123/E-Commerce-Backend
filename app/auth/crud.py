@@ -54,7 +54,7 @@ def signup(user, db):
 
 
 
-def show_all_users(db):
+def show_all_users(db)->list[User]:
     """It is used by admin to see all the users . For now it is only for our development ease.
 
     Args:
@@ -75,7 +75,7 @@ def show_all_users(db):
 
 
 
-def signin(email: str, password: str, db):
+def signin(email: str, password: str, db)->dict:
     """This is used to validate the entries in db and allow user to enter our website
 
     Args:
@@ -193,19 +193,19 @@ def forgot_password_service(email_coming : str,db:Session)->PasswordResetToken:
 
 
 
-def reset_password_service(token_coming:str,new_password:str ,db:Session):
+def reset_password_service(token_coming:str,new_password:str ,db:Session)->dict:
     """It resets password if the token is validated
 
     Args:
         token_coming (str): secret token generated for user
-        new_password (str): _description_
-        db (Session): _description_
+        new_password (str): new password given by user
+        db (Session): 
 
     Raises:
-        HTTPException: _description_
+        HTTPException: It is Session's object used to talk with database
 
     Returns:
-        _type_: _description_
+        dict: containing success or error msg
     """
     
     reset_token_entry = db.query(PasswordResetToken).filter(PasswordResetToken.token == token_coming).first()
