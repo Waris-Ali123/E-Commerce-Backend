@@ -33,10 +33,10 @@ def checkout_service(db : Session, current_user : dict)->Order:
     logger.info(f"User {current_user['email']} is checking out ")
 
     current_user_id = current_user['id']
-    user_carts = db.query(Cart).filter(Cart.user_id==current_user_id).all()
+    #Filtering cart item and showing only that are not delelted by admin as well
+    user_carts = db.query(Cart).filter(Cart.user_id == current_user['id']).join(Product, Cart.product_id == Product.id).all()
 
     if not user_carts:
-
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="User cart is empty")
         
 

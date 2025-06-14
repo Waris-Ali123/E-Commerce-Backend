@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum as sqlEnum, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum as sqlEnum, ForeignKey,Boolean
 from app.core.database import Base
 from enum import Enum
 from sqlalchemy.orm import relationship
@@ -15,6 +15,7 @@ class Product(Base):
     category = Column(String, index=True)
     image_url = Column(String, index=True)
     admin_id = Column(Integer,ForeignKey("users.id",ondelete="CASCADE"), nullable=False)
+    is_deleted = Column(Boolean,default=False,nullable=False)
 
 
     admin = relationship("User", back_populates="products")
@@ -24,7 +25,7 @@ class Product(Base):
     order_items = relationship("OrderItem",back_populates="product")
 
     def __str__(self):
-        return f"<Product(name={self.name}, price={self.price}, stock={self.stock})>"
+        return f"<Product(name={self.name}, price={self.price}, stock={self.stock} , is_deleted={self.is_deleted})>"
 
 
 

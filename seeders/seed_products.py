@@ -65,7 +65,7 @@ def seed_products():
             db.add(new_product)
 
         db.commit()
-        print("✅ Product data seeded!")
+        print(" Product data seeded!")
     finally:
         db.close()
 

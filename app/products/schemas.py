@@ -37,3 +37,9 @@ class ProductOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+
+class ProductOutWithIsDeleted(ProductOut):
+    is_deleted : bool = Field(...,description="tells whether the admin has removed this product or not")
+    pass

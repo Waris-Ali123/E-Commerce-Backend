@@ -29,7 +29,8 @@ def get_all_products_for_admin(db:Session, skip:int, page_size:int,current_user:
     """
     
     
-    products = db.query(Product).filter(Product.admin_id==current_user["id"]).offset(skip).limit(page_size).all()
+    products = db.query(Product).filter(Product.admin_id==current_user["id"],
+                                        Product.is_deleted==False).offset(skip).limit(page_size).all()
     return products
 
 
@@ -88,6 +89,9 @@ def get_product_by_id_for_admin(db: Session, product_id: int,current_user: dict)
     if product.admin_id != current_user['id']:
         logger.warning(f"Product with id:{product_id} does not belong to {current_user['email']}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Product with id:{product_id} does not belong to {current_user['email']}")
+    
+    if product.is_deleted:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail=f"Product with id: {product_id} has already been deleted by admin {current_user['email']}")
 
     return product
 
@@ -111,14 +115,18 @@ def delete_product(product_id: int, db: Session, current_user: dict):
 
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
-        logger.warning(f"No product fount for product with id {product_id} ")
+        # logger.warning(f"No product fount for product with id {product_id} ")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No product fount for product with id {product_id} ")
     
     if product.admin_id != current_user['id']:
         logger.warning(f"{current_user['email']} is not the one who created product with id : {product_id}. Therefore he cannot update it")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="You are not the one who created it. Therefore You cannot update it")
     
-    db.delete(product)
+    if product.is_deleted==True:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail=f"This product has already been deleted by admin {current_user['email']}")
+    
+
+    product.is_deleted=True
     db.commit()
     return True
 
@@ -164,7 +172,8 @@ def get_products_based_on_search(keyword: str, db: Session, skip: int, page_size
 
 
 
-    query = db.query(Product).filter(Product.name.like(f"%{keyword}%"))
+    query = db.query(Product).filter(Product.name.like(f"%{keyword}%"),
+                                     Product.is_deleted==False)
     
     products = query.offset(skip).limit(page_size).all()
     if not products:
@@ -195,6 +204,9 @@ def get_product_by_id( db : Session, product_id : int)->Product:
         logger.warning(f"Product with id : {product_id} not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Product with id : {product_id} not found")
 
+    if product.is_deleted:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="This product has been delelted by admin")
+
     return product
 
 
@@ -221,6 +233,7 @@ def get_all_products_for_user(category: str, min_price: float, max_price: float,
         Product.price >= min_price,
         Product.price <= max_price,
         Product.category.like(f"%{category}%"),
+        Product.is_deleted == False
     )
     if sort_by == "name":
         query = query.order_by(Product.name)

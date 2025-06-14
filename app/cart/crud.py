@@ -29,30 +29,26 @@ def adding_product_to_cart_service(product_id: int,quantity: int,current_user: d
     if not existing_product :
         # logger.warn(f"No product found with id : {product_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No products found for product id : {product_id} ")
+    
+    if existing_product.is_deleted:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Product with id: {product_id} has already been deleted by admin")
 
 
     is_already_available_in_cart = db.query(Cart).filter(Cart.user_id == current_user['id'] ,Cart.product_id==product_id).first()
 
     if is_already_available_in_cart :
-        logger.info("The product is already in cart thus updating the quantity only")
-        is_already_available_in_cart.quantity = quantity
-        db.commit()
-        db.refresh(is_already_available_in_cart)
-        logger.info(f"The cart is modified successfully ")
-        # print(is_already_available_in_cart)
-        return is_already_available_in_cart
+        logger.info(f"Since the product with id {product_id} is already been added to user's cart thus modifying its quantity ")
+        return updating_cart_item(product_id,quantity,db,current_user)
 
-    else:
-        
-        new_cart = Cart(user_id = current_user['id'],
-                        product_id = product_id,
-                        quantity = quantity) 
+    new_cart = Cart(user_id = current_user['id'],
+                    product_id = product_id,
+                    quantity = quantity) 
 
-        db.add(new_cart)
-        db.commit()
-        db.refresh(new_cart)
-        logger.info(f"The product is added to the cart successfully")
-        return new_cart
+    db.add(new_cart)
+    db.commit()
+    db.refresh(new_cart)
+    logger.info(f"The product is added to the cart successfully")
+    return new_cart
 
     
 
@@ -71,7 +67,7 @@ def show_cart_items(db : Session,current_user: dict)->List[Cart]:
         List[Cart]: A collection that will contain all cart items that has been added to the cart
     """
     
-    cart_items = db.query(Cart).filter(Cart.user_id == current_user['id']).all()
+    cart_items = db.query(Cart).join(Product, Cart.product_id == Product.id).filter(Cart.user_id == current_user['id']).all()
 
     if not cart_items:
         # logger.info("No items found in cart")
@@ -140,11 +136,14 @@ def updating_cart_item(product_id : int,quantity : int,db : Session, current_use
 
     if not existing_item_in_cart :
         # logger.warning(f"No cart item found with product id: {product_id} for user {current_user['email']}")
-
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail= f"Cart does not contains any item with id : {product_id}")
 
 
+    if existing_item_in_cart.product.is_deleted:
+        # logger.warning(f"Since the cart item having product with id: {existing_item_in_cart.product_id} is deleted by admin thus deleting it from cart too..")
+        # deleting_cart_item(product_id,db,current_user)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Cart item with id: {existing_item_in_cart.product_id} has been removed by the admin")
 
 
     existing_item_in_cart.quantity = quantity
