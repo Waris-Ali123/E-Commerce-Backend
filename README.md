@@ -130,10 +130,11 @@ Create a `.env` file in the root:
 
 ```env
 DATABASE_URL=sqlite:///./ecommerce.db
-JWT_SECRET_KEY=<your-secret-key>
-JWT_ALGORITHM=HS256
+SECRET_KEY=<your-secret-key>
+EMAIL_HOST=<your_smtp_provider>
+EMAIL_PORT=<port_for_email_delivery>
 EMAIL_SENDER=<your-email-service-sender>
-EMAIL_API_KEY=<your-email-service-api-key>
+EMAIL_PASS=<your-email-service-api-key_or_app_password>
 ```
 
 ### 5. Run Database Migrations
