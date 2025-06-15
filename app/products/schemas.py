@@ -1,4 +1,4 @@
-from pydantic import BaseModel,field_validator
+from pydantic import BaseModel,field_validator, ConfigDict
 from pydantic import Field
 from app.auth.schemas import UserOut
 
@@ -34,12 +34,13 @@ class ProductOut(BaseModel):
     image_url: str = Field(..., description="The image URL of the product")
     admin_id: int = Field(..., description="The ID of the admin who created the product")
     admin : UserOut = Field(..., description="The admin who created the product")
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        orm_mode = True
+    # class Config:
+    #     orm_mode = True
 
 
 
 class ProductOutWithIsDeleted(ProductOut):
     is_deleted : bool = Field(...,description="tells whether the admin has removed this product or not")
-    pass
+    

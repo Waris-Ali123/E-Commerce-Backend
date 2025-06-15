@@ -1,11 +1,13 @@
 import logging.config
 from sqlalchemy.orm import Session
 from app.cart.models import Cart
+from app.cart.schemas import CartOut
 from app.orders.models import Order,OrderItem,Status
 from datetime import datetime
 from fastapi import HTTPException,status
 from app.products.models import Product
 import logging
+
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,7 @@ def checkout_service(db : Session, current_user : dict)->Order:
 
     total = 0
     order_items_local = []
+    deleted_items = []
 
     for cart in user_carts:
 
@@ -50,6 +53,12 @@ def checkout_service(db : Session, current_user : dict)->Order:
         if not product :
             logger.error(f"Product with id {cart.product_id} has not been found in the cart with id : {cart.id} for the user {current_user['email']}")
             continue
+
+        if product.is_deleted:
+            logger.error(f"Cart item with product id : {product.id} is already deleted by admin")
+            deleted_items.append(CartOut.from_orm(cart))
+            continue
+
 
 
         if product.stock < cart.quantity:
@@ -71,7 +80,7 @@ def checkout_service(db : Session, current_user : dict)->Order:
         user_id = current_user_id,  
         total_amount = total,
         status = Status.PENDING.value,
-        created_at = datetime.now())   
+        created_at = datetime.utcnow())   
 
     db.add(new_order)
 
@@ -85,12 +94,13 @@ def checkout_service(db : Session, current_user : dict)->Order:
         db.add(o_item)
 
 
-
+    #Removing all deleted items and non deleted from user's cart
     db.query(Cart).filter(Cart.user_id == current_user_id).delete()
     db.commit()
     db.refresh(new_order)
 
 
     logger.info(f"New Order has been placed Successfully with order id : {new_order.id}")
+    logger.info(f"{deleted_items}")
  
-    return new_order
+    return new_order,deleted_items

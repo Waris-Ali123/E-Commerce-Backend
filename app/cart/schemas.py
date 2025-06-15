@@ -1,7 +1,7 @@
 from pydantic import BaseModel,Field
 # from app.products.models import User
 from app.auth.schemas import UserOut
-from app.products.schemas import ProductOut
+from app.products.schemas import ProductOutWithIsDeleted
 
 class CartOut(BaseModel):
 
@@ -10,7 +10,8 @@ class CartOut(BaseModel):
     product_id : int = Field(...,description="This is the id of product added in cart")
     quantity : int = Field(...,description="This is the quantity of item")
     user : UserOut = Field(..., description="This is complete user detail")
-    product : ProductOut = Field(...,description="This is complete detail of product")
+    product : ProductOutWithIsDeleted = Field(...,description="This is complete detail of product")
 
     class Config:
         orm_mode = True
+        from_attributes = True

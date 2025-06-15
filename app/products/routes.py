@@ -48,9 +48,9 @@ def get_product(product_id: int = Path(...,ge=1), db: Session = Depends(get_db),
 
 @router.put("/admin/products/{product_id}",response_model=ProductOut, status_code=status.HTTP_200_OK)
 def update_product(product_id: int = Path(...,ge=1), product: ProductCreate = Body(...), db: Session = Depends(get_db), current_user: dict = Depends(admin_required)):
-    from app.products.crud import get_product_by_id, update_product as update_product_service
+    from app.products.crud import get_product_by_id_for_admin, update_product as update_product_service
     logger.info(f"Admin {current_user['email']} is updating product with id {product_id}")
-    existing_product = get_product_by_id(db, product_id,current_user)
+    existing_product = get_product_by_id_for_admin(db, product_id,current_user)
     if not existing_product:
         logger.warning(f"Product with id {product_id} not found for update by admin {current_user['email']}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
