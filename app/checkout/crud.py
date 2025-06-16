@@ -76,6 +76,12 @@ def checkout_service(db : Session, current_user : dict)->Order:
         order_items_local.append(order_item)
 
 
+
+
+
+    #Check whether there is any valid item to checkout or not
+    if len(order_items_local) == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="There is not even a single valid item that can be checked out, Update your cart items having available items")
     new_order = Order(
         user_id = current_user_id,  
         total_amount = total,

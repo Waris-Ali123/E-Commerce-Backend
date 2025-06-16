@@ -12,9 +12,14 @@ router = APIRouter()
 def checking_Out(db : Session = Depends(get_db),current_user : dict = Depends(only_user_allowed)):
     from app.checkout.crud import checkout_service
     order,deleted_items = checkout_service(db,current_user)
+    msg = "Checkout Is Successfull"
+
+
+    if len(deleted_items)>0:
+        msg += f" Only {len(deleted_items)} item(s) not been checked out bcz they had been deleted by admin"
     return {"order" : order,
             "deleted_items" : deleted_items,
-            "msg" : f"Checkout is successful. Only {len(deleted_items)} item(s) not been checked out bcz they had been deleted by admin"
+            "msg" : msg
             }
 
 
