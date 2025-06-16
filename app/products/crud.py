@@ -177,8 +177,9 @@ def get_products_based_on_search(keyword: str, db: Session, skip: int, page_size
     
     products = query.offset(skip).limit(page_size).all()
     if not products:
-        logger.warning(f"No product found for search keyword {keyword}")
-        return {"message": "No products found with the given keyword."}
+        # logger.warning(f"No product found for search keyword {keyword}")
+        # return {"message": "No products found with the given keyword."}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No products found with the given keyword {keyword}.")
     return products
 
 
